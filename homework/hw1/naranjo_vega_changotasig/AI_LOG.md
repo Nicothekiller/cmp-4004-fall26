@@ -77,3 +77,56 @@ figure. Fixing the timeout/inequality confusion introduced a fresh bug of my own
 exposed as "40/40 solved" against a raw file that says 5 timed out.
 **Did I understand it?** Yes. The sub-agent was only used to make sure no bugs slip
 past me in part 1.
+
+---
+
+## HW1 — Part 2 (the duel)
+
+**Student:** Andrés Vega
+**Tool:** Claude Code (Claude Opus 5.5)
+**What I asked:** implement Part 2 using the local model through our
+`aicourse` client: a validator, the bare-LLM arm, the tool-augmented arm, the
+reproducibility measurement, the scaling plot, and whatever else the spec
+requires (report, cache committed).
+**What I got:** `code/validator.py` (legality, true cost, optimality against
+A\*, reported-cost check, with five categories counted separately),
+`code/duel.py` (prompts, a tolerant JSON parser, the A\* tool loop, and the
+reproducibility runs; latency is read back from the cache so that replays keep
+the original timing), `code/test_validator.py` (19 tests, including A\* passing
+its own validator on all 40 grids), `code/duel_plots.py` (figures 7–9), a local
+`.gitignore` that re-includes `.llm_cache/`, and the Part 2 section
+of the README. 167 real calls to `qwen2.5:3b`. A replay from the cache makes 0
+calls and reproduces every LLM answer byte for byte.
+**What I did with it:** Using the generated output, I manually reviewed the documents and results to examine the implementations and ensure everything made sense; if I didn't understand something, I asked the LLM to explain it.
+**Did I understand it?** Yes
+
+---
+
+## HW1 — Part 2, second domain (8-puzzle duel)
+
+**Student:** Andrés Vega
+**Tool:** Claude Code (Claude Opus 5.5)
+**What I asked:** add the 8-puzzle to the duel, with everything it needs
+(results, figures, report).
+**What I got:** puzzle checks in `code/validator.py` (blank stays on the
+board, moves end on the goal, length optimal against A\*, reported cost) and
+`code/duel_puzzle.py` (the same three systems; the tool takes the board state).
+Also 11 more tests (30 in all), `fig10`–`fig12`, and the report and README
+rewritten for both domains. The grid prompts were left byte-identical, so the
+grid cache still replays (verified 40/40 hits).
+**What I did with it:** I double-checked the model's output to review and understand it, and if I didn't understand a part, I asked the LLM to explain it to me.
+**Did I understand it?** Yes
+
+---
+
+## HW1 — Part 2, puzzle results in one place
+
+**Student:** Andrés Vega
+**Tool:** Claude Code (Claude Opus 5.5)
+**What I asked:** merge the puzzle's two runs into a single set of results.
+**What I got:** `results/duel/puzzle/` now holds both runs in the same five
+files, told apart by a `prompt` column (`v2` = main run, `v1` = archived first
+run), with one section per version in `failures.md`. The `puzzle_v1/` folder
+and the `--puzzle-v1` flag are gone, and the figures read only `v2`.
+**What I did with it:** Just review that everithing is fine.
+**Did I understand it?** Yes

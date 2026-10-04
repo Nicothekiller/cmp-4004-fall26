@@ -1,6 +1,6 @@
-# Duel 1 — Search · Part 1 (classical comparison)
+# Duel 1 — Search
 
-**Team:** Naranjo · Vega · Changotasig · **Part:** 1 of 3 (classical algorithms).
+**Team:** Naranjo · Vega · Changotasig · **Parts:** 1 (classical comparison) and 2 (the duel); the write-up is [`REPORT.md`](REPORT.md).
 Spec: [`../../hw1/hw-1-search.md`](../../hw1/hw-1-search.md).
 
 Two domains, five algorithms, four difficulty levels, ten instances per level,
@@ -128,15 +128,68 @@ instances, 10 per level) — the levels already match the spec exactly
 
 ---
 
+## Part 2 — the duel (A\* vs. a local LLM vs. LLM + A\* tool)
+
+**Domains:** both Part 1 banks, as text. The 40 weighted grids
+(5×5/8×8/12×12/16×16) and the 40 8-puzzles (depths 4/8/12/16), ten per level.
+**Model:** `qwen2.5:3b` (Q4_K_M) through Ollama, via the course client in
+`aicourse/` (temperature 0, seed 0, cached in `.llm_cache/`).
+
+```text
+code/
+  duel.py            the single entry point: runs both domains
+  duel_core.py       shared machinery: cached LLM calls, the three systems,
+                     the A* tool loop, reproducibility, aggregation, output files
+  duel_grid.py       grid domain only: prompts, parser, A* tool, validator hook
+  duel_puzzle.py     8-puzzle domain only: the same five pieces
+  validator.py       the checker for both domains; never asks a model
+  test_duel.py       30 tests
+  duel_plots.py      fig7-fig9 (grid), fig10-fig12 (puzzle)
+results/duel/
+  grid/  puzzle/      same five files in each; puzzle files add a `prompt` column
+    raw.csv            one row per (system, instance): category, optimal/true/reported
+                       cost, seconds, tokens, tool calls, expansions, validator reasons
+    summary.csv        per system per size: counts per category, optimality rate,
+                       latency median/IQR/p95, tokens
+    repro.csv          5 calls per (instance, temperature) and each answer
+    repro_summary.csv  distinct answers per cell
+    failures.md        every non-optimal answer: instance, validator reasons,
+                       model output verbatim
+```
+
+The validator checks the grid for legality (contiguous, in bounds, no walls,
+S→G) and the puzzle for legality (every blank move on the board, ending on the
+goal). In both domains it then checks the true cost, optimality against A\*,
+and the reported cost. A\*'s own answers pass through it too (80/80 optimal).
+
+The puzzle files hold two runs, told apart by the `prompt` column (and by one
+section each in `failures.md`). `v2` is the main run, and every number in the
+report and every figure use it. `v1` is the **first** run: its format example
+(`["U", "L", ...]`) was copied by the model, so it is kept as evidence
+(REPORT §5). `duel.py` replays both from the cache.
+
+```bash
+ollama pull qwen2.5:3b && ollama serve      # once
+cd code
+python test_duel.py        # 30/30
+python duel.py             # both domains: ~1 h cold; seconds from .llm_cache/
+python duel.py --domain grid          # or one domain
+python duel_plots.py
+```
+
+`duel.py` replays from the cache: with `.llm_cache/` present it makes zero model
+calls and regenerates every LLM answer identically. Only A\*'s wall-clock is
+re-measured. Latency is read back from the cache record, so a replay still
+reports the original inference time.
+
+---
+
 ## Deliverable checklist (spec §Deliverables)
 
-- [x] `code/` — implementations + benchmark harness
-- [x] `results/*.csv` — raw measurements (+ summary + analysis tables)
-- [x] `fig/*.png` — six figures (≥ 3 required)
-- [ ] `REPORT.md` — ≤ 2 000 words (another teammate)
+- [x] `code/` — implementations + benchmark harness (+ the duel: `duel*.py`, `validator.py`)
+- [x] `results/*.csv` — raw measurements (+ summary + analysis tables; duel tables in `results/duel/`)
+- [x] `fig/*.png` — twelve figures (≥ 3 required)
+- [x] `REPORT.md` — ≤ 2 000 words
 - [x] `AI_LOG.md` — per `resources/ai-policy.md`
-- [ ] `.llm_cache/` + Part 2 — **owned by another teammate**
-
-> For Part 2: the root `.gitignore` ignores *all* dotfiles (`.*`), so
-> `.llm_cache/` will need `git add -f` (or a `.gitignore` exception) to be
-> committed as the spec requires.
+- [x] `.llm_cache/` — every model transcript, committed (re-included by the
+      local `.gitignore`, since the root one ignores all dotfiles)
