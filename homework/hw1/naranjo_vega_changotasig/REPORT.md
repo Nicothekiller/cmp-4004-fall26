@@ -96,9 +96,9 @@ Los 10 fallos del híbrido son de interfaz, no de búsqueda:
 
 ![](fig/fig9_duel_grid_latency.png) ![](fig/fig12_duel_puzzle_latency.png)
 
-**Figuras 9 y 12.** El híbrido tarda unas 2 veces lo que el LLM solo, y ambos están 3–5 órdenes de magnitud por encima de A*. Sus tokens crecen con el tamaño porque copia rutas más largas.
+**Figuras 9 y 12.** El híbrido tarda unas 2 veces lo que el LLM solo, y ambos están 3–5 órdenes de magnitud por encima de A*.
 
-**Reproducibilidad.** En 5 llamadas idénticas por nivel, el LLM solo dio 2/2/1/1 y 2/2/2/1 respuestas distintas a temperatura 0 (cuadrícula y rompecabezas), y 5/5/5/2 y 4/4/5/5 a 0,7: no es determinista ni a temperatura 0. *[Confirmar la semilla.]* El híbrido y A* (nivel 2) dieron siempre una sola respuesta, óptima.
+**Reproducibilidad.** Repetimos 5 veces la instancia 0 de cada nivel, cambiando solo la semilla (0–4) para no leer la caché. El LLM solo dio 2/2/1/1 y 2/2/2/1 respuestas distintas a temperatura 0 (cuadrícula y rompecabezas), y 5/5/5/2 y 4/4/5/5 a 0,7: aun a temperatura 0, su respuesta cambia con la semilla. El híbrido y A* (nivel 2) dieron siempre una sola respuesta, óptima.
 
 ## 5. Tarjeta de puntuación del duelo
 
@@ -119,7 +119,7 @@ Los 10 fallos del híbrido son de interfaz, no de búsqueda:
 
 **Ajustamos el prompt después de ver resultados, y eso pesó mucho.** Con el prompt v1 del rompecabezas, cuyo ejemplo de formato era `["U", "L", ...]`, el híbrido acertó **4/40**: en 35 de 36 fallos cambió la solución correcta de A* por una secuencia que empezaba como el ejemplo. Cambiando solo ese ejemplo (v2) subió a **33/40**; el LLM solo dio 0/40 con ambas. El híbrido depende tanto del prompt como de A*; a Manhattan no la tocamos tras ver los datos.
 
-Tampoco dimos la misma información a todos: A* recibe la instancia estructurada y el modelo la reconstruye desde texto, justo donde nacen 3 fallos del híbrido. Las instancias favorecen a lo clásico: a A* el nivel más difícil le cuesta menos de 2 ms, pero para un modelo de 3B ya es largo. Como la herramienta es nuestro A*, el híbrido no puede superarlo; mide la interfaz, y sin reintentos una llave de más es un fallo. Un modelo mayor quizá copiaría mejor, pero no lo probamos. Tampoco contamos las horas de programación.
+Tampoco dimos la misma información a todos: A* recibe la instancia estructurada y el modelo la reconstruye desde texto, justo donde nacen 3 fallos del híbrido. Las instancias favorecen a lo clásico: a A* el nivel más difícil le cuesta menos de 2 ms, pero para un modelo de 3B ya es largo. Como la herramienta es nuestro A*, el híbrido no puede superarlo; mide la interfaz, y sin reintentos una llave de más es un fallo. Un modelo mayor quizá copiaría mejor, pero no lo probamos. Tampoco contamos nuestro tiempo de desarrollo: la latencia compara milisegundos con segundos, pero ignora las horas que costó programar A*, el validador y el bucle de la herramienta.
 
 ## 7. Lo que nuestra evidencia no respalda
 
