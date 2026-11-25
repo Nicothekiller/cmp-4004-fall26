@@ -1,0 +1,3 @@
+# Keep LLM experiment artifacts, including nested hidden files.
+!/.llm_cache/
+!/.llm_cache/**
